@@ -15,8 +15,7 @@ st.title("Dashboard - Superstore")
 st.markdown('<style>div.block-container{padding-top:1rem;}</style>', unsafe_allow_html=True)
 
 # read csv
-default_path = r"C:\Users\Umangi\ICW\Global_Superstore_Lite_Origi.csv"
-df = pd.read_csv(default_path, encoding="ISO-8859-1")
+df = pd.read_csv("Global_Superstore_Lite_Origi_1.csv", encoding="ISO-8859-1")
 
 # Calculate KPIs
 total_sales = df['Sales'].sum()
