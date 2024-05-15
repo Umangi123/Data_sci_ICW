@@ -11,11 +11,33 @@ warnings.filterwarnings('ignore')
 
 st.set_page_config(page_title="Your Superstore Insights", page_icon="📊", layout="wide")
 
-st.title("Dashboard - Superstore")
+st.title("Minger Dashboard")
 st.markdown('<style>div.block-container{padding-top:1rem;}</style>', unsafe_allow_html=True)
 
 # read csv
 df = pd.read_csv("Global_Superstore_Lite_Origi_1.csv", encoding="ISO-8859-1")
+
+# Sidebar filters
+st.sidebar.header("Choose your filter: ")
+region = st.sidebar.multiselect("Pick your Region", df["Region"].unique())
+state = st.sidebar.multiselect("Pick the State", df["State"].unique())
+city = st.sidebar.multiselect("Pick the City", df["City"].unique())
+
+# Filter by date
+st.sidebar.subheader("Filter by Date")
+startDate = pd.to_datetime(df["Order Date"]).min()
+endDate = pd.to_datetime(df["Order Date"]).max()
+date1 = pd.to_datetime(st.sidebar.date_input("Start Date", startDate))
+date2 = pd.to_datetime(st.sidebar.date_input("End Date", endDate))
+df["Order Date"] = pd.to_datetime(df["Order Date"]) 
+df = df[(df["Order Date"] >= date1) & (df["Order Date"] <= date2)].copy()
+
+if region:
+    df = df[df["Region"].isin(region)]
+if state:
+    df = df[df["State"].isin(state)]
+if city:
+    df = df[df["City"].isin(city)]
 
 # Calculate KPIs
 total_sales = df['Sales'].sum()
@@ -31,25 +53,6 @@ with col2:
 with col3:
     st.metric(label="Average Profit", value=f"${average_profit:,.2f}", delta=None)
 
-# Sidebar filters
-st.sidebar.header("Filter Your Data:")
-region = st.sidebar.multiselect("Pick Regions", df["Region"].unique())
-state = st.sidebar.multiselect("Pick States", df["State"].unique())
-city = st.sidebar.multiselect("Pick Cities", df["City"].unique())
-
-startDate = pd.to_datetime(df["Order Date"]).min()
-endDate = pd.to_datetime(df["Order Date"]).max()
-
-with st.sidebar.expander("Date Range"):
-    date1 = pd.to_datetime(st.sidebar.date_input("Start Date", startDate))
-    date2 = pd.to_datetime(st.sidebar.date_input("End Date", endDate))
-
-# Apply filters
-if not region and not state and not city:
-    filtered_df = df
-else:
-    filtered_df = df[df["Region"].isin(region) & df["State"].isin(state) & df["City"].isin(city) &
-                     (df["Order Date"] >= date1) & (df["Order Date"] <= date2)]
 
 def generate_choropleth_map(data, locations_col, color_col, title):
     fig = px.choropleth(
@@ -213,7 +216,7 @@ st.write(month_wise_sub_category_sales.style.background_gradient(cmap="Greens"))
 
 # View original Data
 with st.expander("View Original Data"):
-    st.write(filtered_df.iloc[:500, 1:20:2].style.background_gradient(cmap="Oranges"))
+    st.write(df.iloc[:500, 1:20:2].style.background_gradient(cmap="Oranges"))
 
 # Download original DataSet
 csv = df.to_csv(index=False).encode('utf-8')
